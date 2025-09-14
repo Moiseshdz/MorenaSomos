@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - App Morena</title>
+    <link href="https://framework-gb.cdn.gob.mx/gm/v3/assets/styles/main.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../style/dashboard.css?v=3" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+
+<body>
+    <div id="loading">Cargando usuario...</div>
+
+    <div class="dashboard-container" id="dashboardContainer" style="display: none">
+        <!-- Tarjeta de bienvenida -->
+        <div class="card-welcome">
+            <img id="userFoto" src="" alt="Foto Usuario" />
+            <h3 id="userNombre"></h3>
+            <p id="userCURP"></p>
+            <button class="btn-logout" id="logoutBtn">Cerrar Sesión</button>
+        </div>
+
+        <!-- Menú de tarjetas -->
+        <div class="menu-cards">
+            <div class="menu-card" onclick="mostrarSeccion('registro')">
+                <i class="fa fa-user-plus"></i>
+                <p>Registrar</p>
+            </div>
+            <div class="menu-card" onclick="mostrarSeccion('tabla')">
+                      <i class="fa fa-chart-bar"></i>
+           
+                <p>Lista</p>
+            </div>
+            <div class="menu-card" onclick="mostrarSeccion('reportes')">
+                     <i class="fa fa-table"></i>
+                <p>Reportes</p>
+            </div>
+        </div>
+
+        <!-- Sección Registro -->
+        <div class="seccion" id="seccion-registro">
+            <!-- Contenedor para alertas flotantes -->
+            <!-- Contenedor para alertas centradas -->
+            <div id="alertContainer"
+                style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 80%;">
+            </div>
+
+
+            <h2>Registro</h2>
+            <form role="form" id="registerForm"  autocomplete="off" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="curp">CURP</label>
+                    <input class="form-control" id="curp" name="curp" type="text" placeholder="CURP" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input class="form-control" id="nombre" name="nombre" type="text" placeholder="Nombre" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="apellido">Apellidos</label>
+                    <input class="form-control" id="apellido" name="apellido" type="text" placeholder="Apellidos"
+                        required />
+                </div>
+
+                <div class="form-group">
+                    <label for="dia-nac">Día de nacimiento</label>
+                    <input class="form-control" name="dia-nac" id="dia-nac" type="number" placeholder="DD" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="mes">Mes</label>
+                    <select id="mes" name="mes" name="mes" class="form-control" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="anio-nac">Año de nacimiento</label>
+                    <input class="form-control" name="anio-nac" id="anio-nac" type="number" placeholder="AAAA" required />
+                </div>
+
+                <!-- Sexo -->
+                <div class="form-group">
+                    <label for="sexo">Sexo</label>
+                    <select id="sexo" name="sexo" class="form-control" required></select>
+                </div>
+
+                <!-- Estado -->
+                <div class="form-group">
+                    <label for="estado">Estado de nacimiento</label>
+                    <select id="estado" name="estado" class="form-control" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="direccion">Dirección:</label>
+                    <textarea class="form-control" id="direccion" name="domicilio" rows="3"
+                        placeholder="Escribe tu dirección" required></textarea>
+                </div>
+
+                <!-- Sección -->
+                <div class="form-group">
+                    <label for="seccion">Sección:</label>
+                    <input class="form-control" id="seccion" name="seccion" type="text" placeholder="Sección" />
+                </div>
+
+                <label id="cameraInputLabel" for="cameraInput">
+                    <i class="fa-solid fa-camera"></i> Tomar foto
+                </label>
+                <input type="file" id="cameraInput" name="foto" accept="image/*" capture="environment"
+                    style="display:none">
+
+                <!-- Donde se mostrará la foto -->
+                <img id="photoPreview" alt="Tu foto" style="max-width:200px; margin-top:10px; display:none;">
+
+                <br><br>
+
+                <!-- Input donde se mostrará tu CURP -->
+                <input type="hidden" id="relacion" name="relacion" placeholder="CURP" readonly>
+
+
+
+
+                <button class="btn btn-primary" type="submit" name="afiliado">Enviar</button>
+            </form>
+
+
+            <br />
+
+            <br />
+        </div>
+
+
+        <div class="seccion" id="seccion-tabla">
+            <h2>Tabla de Registros</h2>
+            <table id="tablaRegistros">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>CURP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Relleno dinámico -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="seccion" id="seccion-reportes">
+            <h2>Reportes</h2>
+            <p>Aquí puedes mostrar gráficas o estadísticas.</p>
+        </div>
+    </div>
+
+    <!-- Navegación inferior -->
+    <div class="bottom-nav">
+        <button onclick="mostrarSeccion('registro')">
+            <i class="fa fa-user-plus"></i>
+            <span>Registrar</span>
+        </button>
+        <button onclick="mostrarSeccion('tabla')">
+            <i class="fa fa-table"></i>
+            <span>Tablas</span>
+        </button>
+        <button onclick="mostrarSeccion('reportes')">
+            <i class="fa fa-chart-bar"></i>
+            <span>Reportes</span>
+        </button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/dashboard.js?v=7"></script>
+    <script src="../js/afiliados.js"></script>
+ 
+</body>
+
+</html>

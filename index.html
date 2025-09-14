@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login App Morena</title>
+
+    <!-- Framework gob.mx -->
+    <link rel="stylesheet" href="https://framework-gb.cdn.gob.mx/assets/styles/main.css">
+    <link rel="stylesheet" href="style/index.css?v=2">
+</head>
+
+<body>
+    <!-- SPLASH SCREEN -->
+    <div class="splash" id="splash">
+        <img src="src/logo.png" width="100%" alt="Morena Logo">
+    </div>
+
+    <!-- LOGIN FULL SCREEN -->
+    <div class="app-login" id="appLogin">
+        <div class="logo-container">
+            <img src="src/logo.png" style="width: 50%;" alt="Morena Logo">
+            <h2>¡Bienvenido!</h2>
+            <p class="subtitle">Inicia sesión con tu CURP</p>
+        </div>
+
+        <!-- Mensajes de alerta -->
+        <div class="alert error" id="errorMessage">CURP incorrecta o inactiva</div>
+        <div class="alert success" id="successMessage">¡Inicio de sesión exitoso!</div>
+
+        <!-- Formulario de login -->
+        <form id="loginForm">
+            <div class="form-group">
+                <input type="text" id="curp" class="form-control" placeholder="CURP" required>
+            </div>
+            <button type="submit" class="btn-primary">Iniciar Sesión</button>
+        </form>
+
+        <!-- Botón de registro que redirige a otra página -->
+        <div class="forgot-password">
+            <a href="html/registrar.html">¡Regístrate!</a>
+        </div>
+
+
+
+        <!-- Script -->
+        <script src="js/login.js"></script>
+</body>
+
+</html>
