@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   formRegistro.innerHTML = `
     <h2 class="form-title">Registro</h2>
     <div class="progress-bar"><div class="progress"></div></div>
-    
+
     <form role="form" id="registerForm" autocomplete="off" enctype="multipart/form-data">
 
       <!-- Paso 1: Datos básicos -->
@@ -105,9 +105,14 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <div class="form-group">
-          <label for="relacionTexto">coordinador</label>
+          <label for="relacionTexto">Coordinación</label>
           <input class="form-control" id="relacionTexto" name="relacionTexto" readonly />
         </div>
+
+        <input type="hidden" id="relacionCoordinador" name="curp_id_coordinador" />
+        <input type="hidden" id="relacionLider" name="curp_id_lider" />
+        <input type="hidden" id="relacionSublider" name="curp_id_sublider" />
+        <input type="hidden" id="rolNuevo" name="rol" />
 
         <button type="button" class="btn btn-secondary prev"><i class="fa fa-arrow-left"></i> Anterior</button>
         <button type="submit" class="btn btn-success"><i class="fa fa-paper-plane"></i> Enviar</button>
@@ -116,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
     </form>
   `;
 
-  // Control de pasos
   const steps = formRegistro.querySelectorAll(".step");
   const progress = formRegistro.querySelector(".progress");
   let currentStep = 0;
@@ -142,31 +146,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Mostrar primer paso
   showStep(currentStep);
 
-  // Manejo de envío
   const form = document.getElementById("registerForm");
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
     const formData = new FormData(form);
+    const curpValue = formData.get("curp");
+    if (curpValue) {
+      formData.set("curp", curpValue.toString().toUpperCase());
+    }
 
     fetch("../php/registro.php", {
       method: "POST",
-      body: formData
+      body: formData,
+      credentials: "same-origin"
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
-          alert("Afiliado registrado correctamente");
+          alert(data.message || "Afiliado registrado correctamente");
           form.reset();
-          showStep(0);
+          currentStep = 0;
+          showStep(currentStep);
         } else {
-          alert("Error: " + data.message);
+          alert(data.message || "No se pudo registrar al afiliado");
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         alert("Error de red");
       });

@@ -1,197 +1,192 @@
 <?php
-// Incluimos la conexión
-include 'conexion.php';
+session_start();
+header('Content-Type: text/html; charset=utf-8');
+require_once __DIR__ . '/conexion.php';
 
-// Recibir la CURP del usuario logueado
-$curp_usuario = isset($_GET['curp']) ? $_GET['curp'] : null;
+$curpUsuario = $_SESSION['usuario_curp'] ?? '';
 
-if (!$curp_usuario) {
-    die("<p>No se recibió CURP del usuario</p>");
+if ($curpUsuario === '' && isset($_COOKIE['login_usuario'])) {
+    $curpUsuario = strtoupper(trim($_COOKIE['login_usuario']));
 }
 
-// Obtenemos el rol del usuario logueado
-$sqlRol = "SELECT rol FROM afiliados WHERE curp = '$curp_usuario' LIMIT 1";
-$resRol = $conn->query($sqlRol);
-
-if (!$resRol || $resRol->num_rows == 0) {
-    die("<p>Usuario no encontrado</p>");
+if ($curpUsuario === '' && isset($_GET['curp'])) {
+    $curpUsuario = strtoupper(trim($_GET['curp']));
 }
-$rolUsuario = $resRol->fetch_assoc()['rol'];
 
-// --------------------------------------------------------------------
-// CASO 1: SI EL USUARIO ES COORDINADOR
-// --------------------------------------------------------------------
-if ($rolUsuario == "coordinador") {
-    // Buscar todos los líderes de este coordinador
-    $sqlLideres = "SELECT id, curp, nombre, apellidos, foto 
-                   FROM afiliados 
-                   WHERE curp_id_coordinador = '$curp_usuario' AND rol = 'lider'";
-    $resLideres = $conn->query($sqlLideres);
+if ($curpUsuario === '') {
+    echo '<p>No se recibió CURP del usuario</p>';
+    $conn->close();
+    exit;
+}
+
+$stmtRol = $conn->prepare('SELECT rol FROM afiliados WHERE curp = ? LIMIT 1');
+if (!$stmtRol) {
+    echo '<p>Error al consultar el rol del usuario</p>';
+    $conn->close();
+    exit;
+}
+
+$stmtRol->bind_param('s', $curpUsuario);
+$stmtRol->execute();
+$resRol = $stmtRol->get_result();
+
+if (!$resRol || $resRol->num_rows === 0) {
+    $stmtRol->close();
+    echo '<p>Usuario no encontrado</p>';
+    $conn->close();
+    exit;
+}
+
+$rolUsuario = strtolower($resRol->fetch_assoc()['rol'] ?? '');
+$stmtRol->close();
+
+function renderFoto(?string $foto): string
+{
+    if ($foto && $foto !== '') {
+        $src = '../php/uploads/' . rawurlencode($foto);
+        return "<img src='{$src}' alt='Foto' style='width:60px; height:60px; border-radius:50%; object-fit:cover; flex-shrink:0;'>";
+    }
+    return "<div style='width:60px; height:60px; border-radius:50%; background:#ccc; flex-shrink:0;'></div>";
+}
+
+if ($rolUsuario === 'coordinador') {
+    $stmtLideres = $conn->prepare("SELECT id, curp, nombre, apellidos, foto FROM afiliados WHERE curp_id_coordinador = ? AND rol = 'lider'");
+    $stmtLideres->bind_param('s', $curpUsuario);
+    $stmtLideres->execute();
+    $resLideres = $stmtLideres->get_result();
 
     if ($resLideres && $resLideres->num_rows > 0) {
         $totalGeneral = 0;
         $totalLideres = $resLideres->num_rows;
 
-    
-        echo "<h2 style='margin:5px 0; font-size:16px;'>
-               Líderes Registrado por ti: <b>( $totalLideres )</b> &nbsp;&nbsp; 
-              </h2>";
-
+        echo "<h2 style='margin:5px 0; font-size:16px;'>Líderes registrados por ti: <b>( {$totalLideres} )</b></h2>";
         echo "<ul style='list-style: none; padding: 0; margin:0;'>";
 
         while ($lider = $resLideres->fetch_assoc()) {
-            $idLider = $lider['id'];
             $curpLider = $lider['curp'];
-            $nombreLider = $lider['nombre'] . " " . $lider['apellidos'];
-            $fotoLider = $lider['foto'];
 
-            // Contar sublíderes de este líder
-            $sqlSub = "SELECT COUNT(*) as total FROM afiliados 
-                       WHERE curp_id_lider = '$curpLider' AND rol = 'sublider'";
-            $resSub = $conn->query($sqlSub);
-            $totalSub = ($resSub && $resSub->num_rows > 0) ? $resSub->fetch_assoc()['total'] : 0;
+            $stmtSub = $conn->prepare("SELECT COUNT(*) AS total FROM afiliados WHERE curp_id_lider = ? AND rol = 'sublider'");
+            $stmtSub->bind_param('s', $curpLider);
+            $stmtSub->execute();
+            $totalSub = ($stmtSub->get_result()->fetch_assoc()['total'] ?? 0);
+            $stmtSub->close();
 
-            // Contar afiliados de este líder (directos + registrados por sus sublíderes)
-            $sqlAfiliados = "SELECT COUNT(*) as total FROM afiliados 
-                             WHERE curp_id_lider = '$curpLider' OR curp_id_sublider IN (
-                                 SELECT curp FROM afiliados WHERE curp_id_lider = '$curpLider' AND rol = 'sublider'
-                             )";
-            $resAfiliados = $conn->query($sqlAfiliados);
-            $totalAfiliados = ($resAfiliados && $resAfiliados->num_rows > 0) ? $resAfiliados->fetch_assoc()['total'] : 0;
+            $stmtAfi = $conn->prepare("SELECT COUNT(*) AS total FROM afiliados WHERE curp_id_lider = ? OR curp_id_sublider IN (SELECT curp FROM afiliados WHERE curp_id_lider = ? AND rol = 'sublider')");
+            $stmtAfi->bind_param('ss', $curpLider, $curpLider);
+            $stmtAfi->execute();
+            $totalAfiliados = ($stmtAfi->get_result()->fetch_assoc()['total'] ?? 0);
+            $stmtAfi->close();
 
-            $totalGeneral += $totalAfiliados;
+            $totalGeneral += (int) $totalAfiliados;
 
-            // Mostrar líder como tarjeta clickeable
-            echo "
-            <a href='vista.html?id={$idLider}' style='text-decoration:none; color:inherit;'>
-                <li class='card-item' style='background:#f1f8e9;'>
-            ";
-            // Foto del líder
-            if (!empty($fotoLider)) {
-                echo "<img src='../php/uploads/$fotoLider' alt='Foto'
-                       style='width:60px; height:60px; border-radius:50%; object-fit:cover; flex-shrink:0;'>";
-            } else {
-                echo "<div style='width:60px; height:60px; border-radius:50%; background:#ccc; flex-shrink:0;'></div>";
-            }
+            $nombreLider = htmlspecialchars(($lider['nombre'] ?? '') . ' ' . ($lider['apellidos'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $foto = renderFoto($lider['foto'] ?? null);
+            $idLider = (int) $lider['id'];
 
-            echo "
-                    <div style='margin-left:12px; flex:1; text-align:left;'>
-                        <h1 class='textlista'>$nombreLider</h1>
-                        <h2 style='margin:2px 0; font-size:14px; color:#555;'>($totalSub) SubLíderes</h2>
-                        <h2 style='margin:2px 0; font-size:14px; color:#555;'>($totalAfiliados) Afiliados</h2>
-                    </div>
-                </li>
-            </a>
-            ";
+            echo "<a href='vista.html?id={$idLider}' style='text-decoration:none; color:inherit;'>";
+            echo "<li class='card-item' style='background:#f1f8e9;'>";
+            echo $foto;
+            echo "<div style='margin-left:12px; flex:1; text-align:left;'>";
+            echo "<h1 class='textlista'>{$nombreLider}</h1>";
+            echo "<h2 style='margin:2px 0; font-size:14px; color:#555;'>({$totalSub}) SubLíderes</h2>";
+            echo "<h2 style='margin:2px 0; font-size:14px; color:#555;'>({$totalAfiliados}) Afiliados</h2>";
+            echo "</div></li></a>";
         }
 
-        echo "</ul>";
+        echo '</ul>';
         echo "<hr style='margin:20px 0; border:1px solid #ddd;'>";
-        echo "<h2 style='text-align:right; color:#333; font-size:20px;'>Total general: $totalGeneral</h2>";
+        echo "<h2 style='text-align:right; color:#333; font-size:20px;'>Total general: {$totalGeneral}</h2>";
     } else {
         echo "<h1 style='font-size: 16px; margin: 0px;'>No hay líderes registrados bajo este coordinador</h1>";
     }
-}
-// --------------------------------------------------------------------
-// CASO 2: SI EL USUARIO ES LÍDER O SUBLÍDER (igual que antes)
-// --------------------------------------------------------------------
-else {
-    $sql = "SELECT id, nombre, apellidos, foto, curp_id_lider, curp_id_sublider 
-            FROM afiliados  
-            WHERE curp_id_lider = '$curp_usuario' 
-               OR curp_id_sublider = '$curp_usuario'
-            ORDER BY id DESC";
-    $result = $conn->query($sql);
 
-    if ($result && $result->num_rows > 0) {
-        $registrados_por_usuario = [];
-        $registrados_por_sublider = [];
+    $stmtLideres->close();
+} else {
+    $stmtLista = $conn->prepare('SELECT id, nombre, apellidos, foto, curp_id_lider, curp_id_sublider FROM afiliados WHERE curp_id_lider = ? OR curp_id_sublider = ? ORDER BY id DESC');
+    $stmtLista->bind_param('ss', $curpUsuario, $curpUsuario);
+    $stmtLista->execute();
+    $resLista = $stmtLista->get_result();
 
-        while ($row = $result->fetch_assoc()) {
-            if ($row['curp_id_lider'] == $curp_usuario && (empty($row['curp_id_sublider']) || $row['curp_id_sublider'] == $curp_usuario)) {
-                $registrados_por_usuario[] = $row;
-            } elseif ($row['curp_id_sublider'] == $curp_usuario) {
-                $registrados_por_usuario[] = $row;
-            } else {
-                if (!empty($row['curp_id_sublider'])) {
-                    $registrados_por_sublider[$row['curp_id_sublider']][] = $row;
-                }
+    if ($resLista && $resLista->num_rows > 0) {
+        $registradosPorUsuario = [];
+        $registradosPorSublider = [];
+
+        while ($row = $resLista->fetch_assoc()) {
+            $curpIdLider = $row['curp_id_lider'] ?? '';
+            $curpIdSublider = $row['curp_id_sublider'] ?? '';
+
+            if ($curpIdLider === $curpUsuario && ($curpIdSublider === '' || $curpIdSublider === $curpUsuario)) {
+                $registradosPorUsuario[] = $row;
+            } elseif ($curpIdSublider === $curpUsuario) {
+                $registradosPorUsuario[] = $row;
+            } elseif ($curpIdSublider !== '') {
+                $registradosPorSublider[$curpIdSublider][] = $row;
             }
         }
 
         echo "<ul style='list-style: none; padding: 0; margin:0;'>";
 
-        if (!empty($registrados_por_usuario)) {
-            $totalUsuario = count($registrados_por_usuario);
-            echo "<h3 style='margin:10px 0; color:#333;'>Registrados por ti ($totalUsuario)</h3>";
+        if (!empty($registradosPorUsuario)) {
+            $totalUsuario = count($registradosPorUsuario);
+            echo "<h3 style='margin:10px 0; color:#333;'>Registrados por ti ({$totalUsuario})</h3>";
 
-            foreach ($registrados_por_usuario as $row) {
-                echo "
-                <a href='vista.html?id={$row['id']}' style='text-decoration:none; color:inherit;'>
-                    <li class='card-item' style='background:#ffffff;'>
-                ";
-                if (!empty($row['foto'])) {
-                    echo "<img src='../php/uploads/{$row['foto']}' alt='Foto'
-                           style='width:60px; height:60px; border-radius:50%; object-fit:cover; flex-shrink:0;'>";
-                } else {
-                    echo "<div style='width:60px; height:60px; border-radius:50%; background:#ccc; flex-shrink:0;'></div>";
-                }
-                echo "
-                        <div style='margin-left:12px; text-align:left;'>
-                            <h1 class='textlista'>{$row['nombre']} {$row['apellidos']}</h1>
-                        </div>
-                    </li>
-                </a>
-                ";
+            foreach ($registradosPorUsuario as $row) {
+                $nombre = htmlspecialchars(($row['nombre'] ?? '') . ' ' . ($row['apellidos'] ?? ''), ENT_QUOTES, 'UTF-8');
+                $foto = renderFoto($row['foto'] ?? null);
+                $id = (int) $row['id'];
+
+                echo "<a href='vista.html?id={$id}' style='text-decoration:none; color:inherit;'>";
+                echo "<li class='card-item' style='background:#ffffff;'>";
+                echo $foto;
+                echo "<div style='margin-left:12px; text-align:left;'><h1 class='textlista'>{$nombre}</h1></div>";
+                echo "</li></a>";
             }
         }
 
-        if (!empty($registrados_por_usuario) && !empty($registrados_por_sublider)) {
+        if (!empty($registradosPorUsuario) && !empty($registradosPorSublider)) {
             echo "<hr style='margin:20px 0; border:1px solid #ddd;'>";
         }
 
-        if (!empty($registrados_por_sublider)) {
-            foreach ($registrados_por_sublider as $curp_id_sublider => $listaAfiliados) {
-                $sqlSublider = "SELECT nombre, apellidos FROM afiliados WHERE curp = '$curp_id_sublider' LIMIT 1";
-                $resSublider = $conn->query($sqlSublider);
+        if (!empty($registradosPorSublider)) {
+            $stmtNombre = $conn->prepare('SELECT nombre, apellidos FROM afiliados WHERE curp = ? LIMIT 1');
 
-                $nombreSublider = "Sublíder";
-                if ($resSublider && $resSublider->num_rows > 0) {
-                    $sub = $resSublider->fetch_assoc();
-                    $nombreSublider = $sub['nombre'] . " " . $sub['apellidos'];
+            foreach ($registradosPorSublider as $curpSublider => $listaAfiliados) {
+                $stmtNombre->bind_param('s', $curpSublider);
+                $stmtNombre->execute();
+                $resNombre = $stmtNombre->get_result();
+                $nombreSublider = 'Sublíder';
+                if ($resNombre && $resNombre->num_rows > 0) {
+                    $dato = $resNombre->fetch_assoc();
+                    $nombreSublider = htmlspecialchars(($dato['nombre'] ?? '') . ' ' . ($dato['apellidos'] ?? ''), ENT_QUOTES, 'UTF-8');
                 }
 
                 $totalAfiliados = count($listaAfiliados);
-                echo "<h3 class='promotor-titulo'>Registrados por promotor: $nombreSublider ($totalAfiliados)</h3>";
+                echo "<h3 class='promotor-titulo'>Registrados por promotor: {$nombreSublider} ({$totalAfiliados})</h3>";
 
                 foreach ($listaAfiliados as $row) {
-                    echo "
-                    <a href='vista.html?id={$row['id']}' style='text-decoration:none; color:inherit;'>
-                        <li class='card-item' style='background:#fff9c4;'>
-                    ";
-                    if (!empty($row['foto'])) {
-                        echo "<img src='../php/uploads/{$row['foto']}' alt='Foto'
-                               style='width:60px; height:60px; border-radius:50%; object-fit:cover; flex-shrink:0;'>";
-                    } else {
-                        echo "<div style='width:60px; height:60px; border-radius:50%; background:#ccc; flex-shrink:0;'></div>";
-                    }
-                    echo "
-                            <div style='margin-left:12px; text-align:left;'>
-                                <h1 class='textlista'>{$row['nombre']} {$row['apellidos']}</h1>
-                            </div>
-                        </li>
-                    </a>
-                    ";
+                    $nombre = htmlspecialchars(($row['nombre'] ?? '') . ' ' . ($row['apellidos'] ?? ''), ENT_QUOTES, 'UTF-8');
+                    $foto = renderFoto($row['foto'] ?? null);
+                    $id = (int) $row['id'];
+
+                    echo "<a href='vista.html?id={$id}' style='text-decoration:none; color:inherit;'>";
+                    echo "<li class='card-item' style='background:#fff9c4;'>";
+                    echo $foto;
+                    echo "<div style='margin-left:12px; text-align:left;'><h1 class='textlista'>{$nombre}</h1></div>";
+                    echo "</li></a>";
                 }
 
                 echo "<hr style='margin:20px 0; border:1px solid #ddd;'>";
             }
+
+            $stmtNombre->close();
         }
 
-        echo "</ul>";
+        echo '</ul>';
     } else {
         echo "<h1 style='font-size: 16px; margin: 0px;'>No hay registros disponibles</h1>";
     }
+
+    $stmtLista->close();
 }
 
 $conn->close();

@@ -34,9 +34,7 @@
 
         .perfil-header {
             padding: 25px 15px 50px 15px;
-            /* top, right, bottom, left */
             background: #611232;
-
             color: #fff;
             text-align: center;
         }
@@ -78,7 +76,6 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            /* scroll si es necesario */
         }
 
         .info-item {
@@ -140,92 +137,95 @@
 
 <body>
 <?php
-include 'conexion.php';
-$id = isset($_GET['id']) ? $_GET['id'] : '';
+require_once __DIR__ . '/conexion.php';
 
-if ($id) {
-    $stmt = $conn->prepare("
-        SELECT a.*, s.colonia, s.referencia
-        FROM afiliados a
-        LEFT JOIN secciones s ON a.seccion = s.seccion
-        WHERE a.curp = ?
-    ");
-    $stmt->bind_param("s", $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+$curp = isset($_GET['id']) ? strtoupper(trim($_GET['id'])) : '';
 
-    if ($row = $result->fetch_assoc()) {
-        echo "<div class='perfil-app'>";
-     echo '<div class="perfil-header"><h1>¡Quien te registró!</h1> <i class="fa-solid fa-chevron-down"></i></div>';
-
-
-        echo "<div class='perfil-avatar'>";
-        echo "<img src='../php/uploads/" . htmlspecialchars($row['foto']) . "' alt='Foto'>";
-        echo "<h2>" . htmlspecialchars($row['nombre']) . " " . htmlspecialchars($row['apellidos']) . "</h2>";
-        echo "<p><i class='fa fa-users'></i> " . htmlspecialchars($row['rol']) . "</p>";
-        echo "</div>";
-
-        echo "<div class='perfil-info'>";
-        echo "<div class='info-item'><i class='fa fa-id-card'></i> CURP: " . htmlspecialchars($row['curp']) . "</div>";
-        echo "<div class='info-item'><i class='fa fa-phone'></i> Teléfono: " . (!empty($row['telefono']) ? htmlspecialchars($row['telefono']) : "No registrado") . "</div>";
-        echo "<div class='info-item'><i class='fa fa-home'></i> Domicilio: " . (!empty($row['domicilio']) ? htmlspecialchars($row['domicilio']) : "No registrado") . "</div>";
-
-        // Mostrar sección
-        echo "<div class='info-item'><i class='fa fa-map'></i> Sección: " . htmlspecialchars($row['seccion']);
-        if (!empty($row['colonia']) || !empty($row['referencia'])) {
-            echo " - " . htmlspecialchars($row['colonia']) . " (" . htmlspecialchars($row['referencia']) . ")";
-        }
-        echo "</div>";
-        echo "</div>"; // perfil-info
-
-        // Contenedor mapa
-        echo "<div id='map'></div>";
-
-        // Construir dirección dinámica
-        $direccion = "Reforma, Chiapas, " . $row['colonia'];
-        if (!empty($row['referencia'])) {
-            $direccion .= ", " . $row['referencia'];
-        }
-        $direccion .= ", México";
-
-        echo "<script>var direccion = " . json_encode($direccion) . ";</script>";
-
-        echo "<div class='perfil-footer'>";
-        echo "<button id='btnVolver' class='btn-volver'><i class='fa fa-arrow-left'></i> Volver</button>";
-        echo "</div>";
-        echo "</div>";
-    } else {
-        echo "<p style='text-align:center;color:red;'>No se encontró el afiliado con esa CURP.</p>";
-    }
-    $stmt->close();
+if ($curp === '') {
+    echo "<p style='text-align:center;color:red;'>No se especificó un afiliado válido.</p>";
+    $conn->close();
+    exit;
 }
+
+$stmt = $conn->prepare('SELECT a.*, s.colonia, s.referencia FROM afiliados a LEFT JOIN secciones s ON a.seccion = s.seccion WHERE a.curp = ? LIMIT 1');
+if (!$stmt) {
+    echo "<p style='text-align:center;color:red;'>No se pudo preparar la consulta.</p>";
+    $conn->close();
+    exit;
+}
+
+$stmt->bind_param('s', $curp);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($row = $result->fetch_assoc()) {
+    $foto = !empty($row['foto']) ? '../php/uploads/' . htmlspecialchars($row['foto'], ENT_QUOTES, 'UTF-8') : '../src/avatar.jpg';
+    $nombre = htmlspecialchars($row['nombre'] ?? '', ENT_QUOTES, 'UTF-8');
+    $apellidos = htmlspecialchars($row['apellidos'] ?? '', ENT_QUOTES, 'UTF-8');
+    $rol = htmlspecialchars($row['rol'] ?? 'Sin rol', ENT_QUOTES, 'UTF-8');
+    $curpTexto = htmlspecialchars($row['curp'] ?? '', ENT_QUOTES, 'UTF-8');
+    $telefono = htmlspecialchars($row['telefono'] ?? 'No registrado', ENT_QUOTES, 'UTF-8');
+    $domicilio = htmlspecialchars($row['domicilio'] ?? 'No registrado', ENT_QUOTES, 'UTF-8');
+    $seccion = htmlspecialchars($row['seccion'] ?? 'Sin sección', ENT_QUOTES, 'UTF-8');
+    $colonia = htmlspecialchars($row['colonia'] ?? '', ENT_QUOTES, 'UTF-8');
+    $referencia = htmlspecialchars($row['referencia'] ?? '', ENT_QUOTES, 'UTF-8');
+    $estatus = htmlspecialchars($row['estatus'] ?? 'desconocido', ENT_QUOTES, 'UTF-8');
+    $registrado = htmlspecialchars($row['registrado_en'] ?? '', ENT_QUOTES, 'UTF-8');
+
+    echo "<div class='perfil-app'>";
+    echo "<div class='perfil-header'><h1>¡Quien te registró!</h1> <i class='fa-solid fa-chevron-down'></i></div>";
+
+    echo "<div class='perfil-avatar'>";
+    echo "<img src='{$foto}' alt='Foto'>";
+    echo "<h2>{$nombre} {$apellidos}</h2>";
+    echo "<p><i class='fa fa-users'></i> {$rol}</p>";
+    echo "</div>";
+
+    echo "<div class='perfil-info'>";
+    echo "<div class='info-item'><i class='fa fa-id-card'></i> CURP: {$curpTexto}</div>";
+    echo "<div class='info-item'><i class='fa fa-phone'></i> Teléfono: {$telefono}</div>";
+    echo "<div class='info-item'><i class='fa fa-home'></i> Domicilio: {$domicilio}</div>";
+
+    echo "<div class='info-item'><i class='fa fa-map'></i> Sección: {$seccion}";
+    if ($colonia !== '' || $referencia !== '') {
+        $detalle = trim($colonia . ' ' . ($referencia !== '' ? "({$referencia})" : ''));
+        echo ' - ' . htmlspecialchars($detalle, ENT_QUOTES, 'UTF-8');
+    }
+    echo "</div>";
+
+    echo "<div class='info-item'><i class='fa fa-flag'></i> Estatus: {$estatus}</div>";
+    if ($registrado !== '') {
+        echo "<div class='info-item'><i class='fa fa-calendar'></i> Registrado en: {$registrado}</div>";
+    }
+    echo "</div>"; // perfil-info
+
+    echo "<div class='perfil-footer'>";
+    echo "<button id='btnVolver' class='btn-volver'><i class='fa fa-arrow-left'></i> Volver</button>";
+    echo "</div>";
+    echo "</div>";
+} else {
+    echo "<p style='text-align:center;color:red;'>No se encontró el afiliado con esa CURP.</p>";
+}
+
+$stmt->close();
 $conn->close();
 ?>
-
 
 </body>
 
 </html>
-
-
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const btnVolver = document.getElementById("btnVolver");
   if (btnVolver) {
     btnVolver.addEventListener("click", () => {
-      // Si hay historial, regresa
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        // Si no hay historial, redirige al dashboard
         window.location.href = "../html/dashboard.html";
       }
     });
   }
 });
-
-
-
 </script>
-

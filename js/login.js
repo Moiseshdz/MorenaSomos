@@ -1,4 +1,3 @@
-// Animación splash
 window.addEventListener('load', () => {
     const splash = document.getElementById('splash');
     const appLogin = document.getElementById('appLogin');
@@ -9,12 +8,10 @@ window.addEventListener('load', () => {
     }, 2500);
 });
 
-// Elementos
 const loginForm = document.getElementById('loginForm');
 const errorMessage = document.getElementById('errorMessage');
 const successMessage = document.getElementById('successMessage');
 
-// Función para obtener cookie
 function getCookie(name) {
     let matches = document.cookie.match(new RegExp(
         "(?:^|; )" + name.replace(/([$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
@@ -22,7 +19,6 @@ function getCookie(name) {
     return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
-// Revisar si ya hay cookie de sesión activa
 document.addEventListener('DOMContentLoaded', () => {
     const curpCookie = getCookie('login_usuario');
     if (curpCookie) {
@@ -34,10 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Manejar envío de login
 loginForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    const curp = document.getElementById('curp').value.trim();
+    const curp = document.getElementById('curp').value.trim().toUpperCase();
     if (!curp) return;
 
     fetch('php/login.php', {
@@ -46,28 +41,18 @@ loginForm.addEventListener('submit', function(e) {
         body: `curp=${encodeURIComponent(curp)}`,
         credentials: 'same-origin'
     })
-    .then(res => res.text()) // Temporal para debug
-    .then(text => {
-        console.log(text); // Ver qué devuelve realmente el PHP
-        try {
-            const data = JSON.parse(text);
-
-            if(data.success){
-                errorMessage.style.display = 'none';
-                successMessage.textContent = "¡Inicio de sesión exitoso!";
-                successMessage.style.display = 'block';
-                setTimeout(() => {
-                    window.location.replace('html/dashboard.html');
-                }, 500);
-            } else {
-                successMessage.style.display = 'none';
-                errorMessage.textContent = data.message || "CURP incorrecta o inactiva";
-                errorMessage.style.display = 'block';
-            }
-        } catch(e){
-            console.error("No es JSON válido:", e, text);
+    .then(res => res.json())
+    .then(data => {
+        if(data.success){
+            errorMessage.style.display = 'none';
+            successMessage.textContent = data.message || "¡Inicio de sesión exitoso!";
+            successMessage.style.display = 'block';
+            setTimeout(() => {
+                window.location.replace('html/dashboard.html');
+            }, 500);
+        } else {
             successMessage.style.display = 'none';
-            errorMessage.textContent = "Ocurrió un error al iniciar sesión";
+            errorMessage.textContent = data.message || "CURP incorrecta o inactiva";
             errorMessage.style.display = 'block';
         }
     })
