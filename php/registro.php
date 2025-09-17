@@ -9,24 +9,9 @@ if (!isset($_SESSION['usuario_id'], $_SESSION['usuario_curp'])) {
     exit;
 }
 
-$datos = $_POST;
-
-if (isset($_POST['apellido']) && !isset($_POST['apellidos'])) {
-    $datos['apellidos'] = $_POST['apellido'];
-}
-if (isset($_POST['dia-nac']) && !isset($_POST['dia'])) {
-    $datos['dia'] = $_POST['dia-nac'];
-}
-if (isset($_POST['anio-nac']) && !isset($_POST['anio'])) {
-    $datos['anio'] = $_POST['anio-nac'];
-}
-if (isset($_POST['anio']) && !isset($_POST['anios'])) {
-    $datos['anios'] = $_POST['anio'];
-}
-
 $resultado = registrarAfiliado(
     $conn,
-    $datos,
+    $_POST,
     $_FILES,
     (int) $_SESSION['usuario_id'],
     (string) $_SESSION['usuario_curp']

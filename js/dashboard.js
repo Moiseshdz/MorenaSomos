@@ -1,9 +1,5 @@
 /* ===================== Utils (utilidades) ===================== */
 
-/**
- * getCookie(name)
- * Devuelve el valor de una cookie por nombre o undefined si no existe.
- */
 function getCookie(name) {
   const matches = document.cookie.match(
     new RegExp("(?:^|; )" + name.replace(/([$?*|{}\(\)\[\]\\\/\+^])/g, "\\$1") + "=([^;]*)")
@@ -11,10 +7,6 @@ function getCookie(name) {
   return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
-/**
- * showAlert(container, message, type, autoCloseMs)
- * Muestra una alerta simple dentro de un contenedor dado.
- */
 function showAlert(container, message, type = "success", autoCloseMs = 3000) {
   container.innerHTML = "";
   const div = document.createElement("div");
@@ -38,7 +30,6 @@ function showAlert(container, message, type = "success", autoCloseMs = 3000) {
   }
 }
 
-/* ============ Validación de sesión al cargar ============ */
 document.addEventListener("DOMContentLoaded", () => {
   const curpCookie = getCookie("login_usuario");
   if (!curpCookie) {
@@ -46,10 +37,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/* ===================== Cargar datos del usuario ===================== */
 async function cargarDatosUsuario() {
   try {
-    const res = await fetch("../php/dashboard.php");
+    const res = await fetch("../php/dashboard.php", { credentials: "same-origin" });
     const data = await res.json();
 
     const container = document.getElementById("dashboardContainer");
@@ -57,9 +47,8 @@ async function cargarDatosUsuario() {
 
     if (data.success) {
       const user = data.user;
-      const jerarquia = data.jerarquia || {}; // ✅ usar jerarquia en lugar de relacion
+      const jerarquia = data.jerarquia || {};
 
-      // Tarjeta de bienvenida
       const elNombre = document.getElementById("userNombre");
       const elCurp = document.getElementById("userCURP");
       const elFoto = document.getElementById("userFoto");
@@ -67,19 +56,22 @@ async function cargarDatosUsuario() {
 
       if (elNombre) elNombre.textContent = user.nombre;
       if (elCurp) elCurp.textContent = `CURP: ${user.curp}`;
-      if (elFoto) elFoto.src = `../php/uploads/${user.foto}`;
+      if (elFoto) elFoto.src = user.foto ? `../php/uploads/${user.foto}` : "../src/avatar.jpg";
 
-      // Subtítulo debajo de la tarjeta
       if (elSubtitle) {
-        if (jerarquia.coordinador || jerarquia.lider || jerarquia.sublider) {
-          let texto = "";
-          if (jerarquia.coordinador) {
-            texto = `Coordinador - ${jerarquia.coordinador.nombre} ${jerarquia.coordinador.apellidos}`;
-          } else if (jerarquia.lider) {
-            texto = `Líder - ${jerarquia.lider.nombre} ${jerarquia.lider.apellidos}`;
-          } else if (jerarquia.sublider) {
-            texto = `Sublíder - ${jerarquia.sublider.nombre} ${jerarquia.sublider.apellidos}`;
-          }
+        const partes = [];
+        if (jerarquia.coordinador) {
+          partes.push(`Coordinador - ${jerarquia.coordinador.nombre} ${jerarquia.coordinador.apellidos}`);
+        }
+        if (jerarquia.lider) {
+          partes.push(`Líder - ${jerarquia.lider.nombre} ${jerarquia.lider.apellidos}`);
+        }
+        if (jerarquia.sublider) {
+          partes.push(`Sublíder - ${jerarquia.sublider.nombre} ${jerarquia.sublider.apellidos}`);
+        }
+
+        if (partes.length > 0) {
+          const texto = partes.join(" / ");
           elSubtitle.innerHTML = `<a href='../php/relacion.php?id=${user.curp}' id='link_relacion'>
                                     <i class="fa fa-link"></i> ${texto}
                                   </a>`;
@@ -88,31 +80,47 @@ async function cargarDatosUsuario() {
         }
       }
 
-      // En el formulario paso 5 → quién registra = su propia CURP
       const quienRegistra = document.getElementById("quienRegistra");
       if (quienRegistra) quienRegistra.value = user.curp;
 
-      // Inputs de relaciones
-      const inputLider = document.getElementById("relacionLider");
       const inputCoord = document.getElementById("relacionCoordinador");
+      const inputLider = document.getElementById("relacionLider");
       const inputSub = document.getElementById("relacionSublider");
+      const inputTexto = document.getElementById("relacionTexto");
+      const inputRol = document.getElementById("rolNuevo");
 
-      if (inputCoord) {
-        inputCoord.value = jerarquia.coordinador
-          ? jerarquia.coordinador.curp
-          : "Sin asignar";
+      if (inputCoord) inputCoord.value = jerarquia.coordinador ? jerarquia.coordinador.curp : "";
+      if (inputLider) inputLider.value = jerarquia.lider ? jerarquia.lider.curp : "";
+      if (inputSub) inputSub.value = jerarquia.sublider ? jerarquia.sublider.curp : "";
+
+      if (inputTexto) {
+        const textoPartes = [];
+        if (jerarquia.rol) {
+          textoPartes.push(`Rol actual: ${jerarquia.rol}`);
+        }
+        if (jerarquia.coordinador) {
+          textoPartes.push(`Coord.: ${jerarquia.coordinador.curp}`);
+        }
+        if (jerarquia.lider) {
+          textoPartes.push(`Líder: ${jerarquia.lider.curp}`);
+        }
+        if (jerarquia.sublider) {
+          textoPartes.push(`Sublíder: ${jerarquia.sublider.curp}`);
+        }
+        inputTexto.value = textoPartes.length > 0 ? textoPartes.join(" | ") : "Sin relación";
       }
 
-      if (inputLider) {
-        inputLider.value = jerarquia.lider
-          ? jerarquia.lider.curp
-          : "Sin asignar";
-      }
-
-      if (inputSub) {
-        inputSub.value = jerarquia.sublider
-          ? jerarquia.sublider.curp
-          : "Sin asignar";
+      if (inputRol) {
+        const rolActual = (jerarquia.rol || '').toLowerCase();
+        let rolSugerido = 'afiliado';
+        if (rolActual === 'coordinador') {
+          rolSugerido = 'lider';
+        } else if (rolActual === 'lider') {
+          rolSugerido = 'sublider';
+        } else if (rolActual === 'sublider') {
+          rolSugerido = 'afiliado';
+        }
+        inputRol.value = rolSugerido;
       }
 
       if (loading) loading.style.display = "none";
@@ -127,7 +135,6 @@ async function cargarDatosUsuario() {
   }
 }
 
-/* ============================ Logout ============================ */
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", async () => {
@@ -141,7 +148,6 @@ if (logoutBtn) {
   });
 }
 
-/* ================= Navegación entre secciones ================= */
 function mostrarSeccion(seccionId, boton = null) {
   document.querySelectorAll(".seccion").forEach((sec) => {
     sec.style.display = "none";
@@ -159,7 +165,6 @@ function mostrarSeccion(seccionId, boton = null) {
   }
 }
 
-/* ===================== Inicialización ===================== */
 if (!window.__regFormHandlerBound) {
   window.__regFormHandlerBound = true;
 
