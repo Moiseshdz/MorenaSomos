@@ -11,7 +11,7 @@ if (empty($curp)) {
 }
 
 // Consulta SQL
-$sql = "SELECT estatus FROM usuarios WHERE curp='$curp' LIMIT 1";
+$sql = "SELECT estatus FROM afiliados WHERE curp='$curp' LIMIT 1";
 $result = $conn->query($sql);
 
 if ($result && $result->num_rows > 0) {

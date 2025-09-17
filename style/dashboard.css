@@ -180,11 +180,25 @@ table tr:nth-child(even) {
 ========================= */
 
 /* Etiquetas */
-label.control-label {
+label {
     font-weight: 600;
     color: var(--color-principal);
     margin-bottom: 6px;
     display: block;
+    font-family: Patria, "noso Sans", Helvetica, Arial, sans-serif;
+
+
+}
+
+input,
+textarea {
+    font-family: Patria, "noso Sans", Helvetica, Arial, sans-serif;
+}
+
+#subtitle{
+    font-family: Patria, "noso Sans", Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    color: #FDC745;
 }
 
 /* Checkbox personalizado */
@@ -224,3 +238,228 @@ label.control-label {
 }
 
 
+
+
+.ajuste-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    font-size: 15px;
+    color: #333;
+}
+
+.ajuste-item i {
+    color: #611232;
+    margin-right: 10px;
+}
+
+.btn-ajuste {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #611232;
+    cursor: pointer;
+}
+
+.logout {
+    background: #ffe6e6;
+    color: #b30000;
+    font-weight: bold;
+}
+
+.logout i {
+    color: #b30000;
+}
+
+/* Switch estilo iOS */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 22px;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 22px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: #611232;
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+
+
+#logoutBtn,
+#ajustetext {
+    font-size: 15px;
+}
+
+.bottom-nav button.active {
+    color: #FDC745;
+    /* color de texto activo */
+}
+
+.bottom-nav button.active i {
+    color: #FDC745;
+    /* color del icono activo */
+}
+
+
+/* Paso del formulario */
+.step {
+    display: none;
+    animation: fadeIn 0.4s ease;
+    padding: 20px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+}
+
+.step.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Botones */
+.btn {
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin: 8px 6px 0 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: Patria, "noso Sans", Helvetica, Arial, sans-serif;
+}
+
+/* Siguiente */
+.btn-primary {
+    background: linear-gradient(135deg, #611232, #8a1f46);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(97, 18, 50, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #8a1f46, #611232);
+    transform: translateY(-2px) scale(1.03);
+}
+
+/* Anterior */
+.btn-secondary {
+    background: linear-gradient(135deg, #f4f4f4, #e0e0e0);
+    color: #333;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    border: none !important;
+    /* 🔥 aquí fuerzas que no tenga borde */
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #e0e0e0, #d5d5d5);
+    transform: translateY(-2px) scale(1.03);
+}
+
+
+/* Enviar */
+.btn-success {
+    background: linear-gradient(135deg, #4caf50, #388e3c);
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #388e3c, #4caf50);
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* Inputs */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    height: 45px;
+    padding: 12px 14px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    outline: none;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    /* 🔥 Fuerza que el texto se vea en MAYÚSCULAS */
+}
+
+.form-control:focus {
+    border-color: #611232;
+    box-shadow: 0 0 6px rgba(97, 18, 50, 0.3);
+}
+#link_relacion {
+    text-decoration: none;
+    color: #FDC745;
+    display: inline-block; /* necesario para que el zoom funcione bien */
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+#link_relacion:hover {
+    text-decoration: none;
+    color: #fff;
+    transform: scale(1.2); /* hace el zoom */
+}

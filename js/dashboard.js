@@ -1,6 +1,9 @@
-"use strict";
+/* ===================== Utils (utilidades) ===================== */
 
-/* ===================== Utils ===================== */
+/**
+ * getCookie(name)
+ * Devuelve el valor de una cookie por nombre o undefined si no existe.
+ */
 function getCookie(name) {
   const matches = document.cookie.match(
     new RegExp("(?:^|; )" + name.replace(/([$?*|{}\(\)\[\]\\\/\+^])/g, "\\$1") + "=([^;]*)")
@@ -8,6 +11,10 @@ function getCookie(name) {
   return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
+/**
+ * showAlert(container, message, type, autoCloseMs)
+ * Muestra una alerta simple dentro de un contenedor dado.
+ */
 function showAlert(container, message, type = "success", autoCloseMs = 3000) {
   container.innerHTML = "";
   const div = document.createElement("div");
@@ -31,24 +38,7 @@ function showAlert(container, message, type = "success", autoCloseMs = 3000) {
   }
 }
 
-function clearForm() {
-  const form = document.getElementById("registerForm");
-  const photoPreview = document.getElementById("photoPreview");
-  const cameraInput = document.getElementById("cameraInput");
-  const selectMes = document.getElementById("mes");
-  const selectSexo = document.getElementById("sexo");
-  const selectEstado = document.getElementById("estado");
-
-  if (form) form.reset();
-  if (photoPreview) { photoPreview.src = ""; photoPreview.style.display = "none"; }
-  if (cameraInput) cameraInput.value = "";
-
-  if (selectMes) selectMes.selectedIndex = 0;
-  if (selectSexo) selectSexo.selectedIndex = 0;
-  if (selectEstado) selectEstado.selectedIndex = 0;
-}
-
-/* ===================== Validar sesión al cargar ===================== */
+/* ============ Validación de sesión al cargar ============ */
 document.addEventListener("DOMContentLoaded", () => {
   const curpCookie = getCookie("login_usuario");
   if (!curpCookie) {
@@ -61,21 +51,69 @@ async function cargarDatosUsuario() {
   try {
     const res = await fetch("../php/dashboard.php");
     const data = await res.json();
+
     const container = document.getElementById("dashboardContainer");
     const loading = document.getElementById("loading");
 
     if (data.success) {
       const user = data.user;
+      const jerarquia = data.jerarquia || {}; // ✅ usar jerarquia en lugar de relacion
 
+      // Tarjeta de bienvenida
       const elNombre = document.getElementById("userNombre");
       const elCurp = document.getElementById("userCURP");
       const elFoto = document.getElementById("userFoto");
+      const elSubtitle = document.getElementById("subtitle");
+
       if (elNombre) elNombre.textContent = user.nombre;
       if (elCurp) elCurp.textContent = `CURP: ${user.curp}`;
       if (elFoto) elFoto.src = `../php/uploads/${user.foto}`;
 
-      const relacion = document.getElementById("relacion");
-      if (relacion) relacion.value = user.curp;
+      // Subtítulo debajo de la tarjeta
+      if (elSubtitle) {
+        if (jerarquia.coordinador || jerarquia.lider || jerarquia.sublider) {
+          let texto = "";
+          if (jerarquia.coordinador) {
+            texto = `Coordinador - ${jerarquia.coordinador.nombre} ${jerarquia.coordinador.apellidos}`;
+          } else if (jerarquia.lider) {
+            texto = `Líder - ${jerarquia.lider.nombre} ${jerarquia.lider.apellidos}`;
+          } else if (jerarquia.sublider) {
+            texto = `Sublíder - ${jerarquia.sublider.nombre} ${jerarquia.sublider.apellidos}`;
+          }
+          elSubtitle.innerHTML = `<a href='../php/relacion.php?id=${user.curp}' id='link_relacion'>
+                                    <i class="fa fa-link"></i> ${texto}
+                                  </a>`;
+        } else {
+          elSubtitle.innerHTML = `<i class="fa fa-user"></i> Sin relación asignada`;
+        }
+      }
+
+      // En el formulario paso 5 → quién registra = su propia CURP
+      const quienRegistra = document.getElementById("quienRegistra");
+      if (quienRegistra) quienRegistra.value = user.curp;
+
+      // Inputs de relaciones
+      const inputLider = document.getElementById("relacionLider");
+      const inputCoord = document.getElementById("relacionCoordinador");
+      const inputSub = document.getElementById("relacionSublider");
+
+      if (inputCoord) {
+        inputCoord.value = jerarquia.coordinador
+          ? jerarquia.coordinador.curp
+          : "Sin asignar";
+      }
+
+      if (inputLider) {
+        inputLider.value = jerarquia.lider
+          ? jerarquia.lider.curp
+          : "Sin asignar";
+      }
+
+      if (inputSub) {
+        inputSub.value = jerarquia.sublider
+          ? jerarquia.sublider.curp
+          : "Sin asignar";
+      }
 
       if (loading) loading.style.display = "none";
       if (container) container.style.display = "flex";
@@ -85,12 +123,11 @@ async function cargarDatosUsuario() {
     }
   } catch (err) {
     console.error(err);
-    alert("Error al cargar datos del usuario");
     window.location.href = "../index.html";
   }
 }
 
-/* ===================== Logout ===================== */
+/* ============================ Logout ============================ */
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", async () => {
@@ -98,144 +135,36 @@ if (logoutBtn) {
       const res = await fetch("../php/logout.php", { credentials: "same-origin" });
       const data = await res.json();
       if (data.success) window.location.href = "../index.html";
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   });
 }
 
-/* ===================== Mostrar secciones ===================== */
-function mostrarSeccion(seccion) {
-  document.querySelectorAll(".seccion").forEach((s) => (s.style.display = "none"));
-  const target = document.getElementById(`seccion-${seccion}`);
+/* ================= Navegación entre secciones ================= */
+function mostrarSeccion(seccionId, boton = null) {
+  document.querySelectorAll(".seccion").forEach((sec) => {
+    sec.style.display = "none";
+  });
+
+  const target = document.getElementById(`seccion-${seccionId}`);
   if (target) target.style.display = "block";
+
+  document.querySelectorAll(".bottom-nav button").forEach((btn) => {
+    btn.classList.remove("active");
+  });
+
+  if (boton) {
+    boton.classList.add("active");
+  }
 }
 
-/* ===================== App Init (solo una vez) ===================== */
+/* ===================== Inicialización ===================== */
 if (!window.__regFormHandlerBound) {
   window.__regFormHandlerBound = true;
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Sección inicial
-    mostrarSeccion("registro");
-
-    // Cargar usuario
+    mostrarSeccion("home", document.querySelector(".bottom-nav button"));
     cargarDatosUsuario();
-
-    // --------- Selects dinámicos ---------
-    const selectMes = document.getElementById("mes");
-    if (selectMes) {
-      const meses = [
-        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-      ];
-      selectMes.innerHTML = `<option value="" disabled selected>Selecciona un mes</option>`;
-      meses.forEach((mes, index) => {
-        const option = document.createElement("option");
-        option.value = String(index + 1).padStart(2, "0"); // 01..12
-        option.textContent = mes;
-        selectMes.appendChild(option);
-      });
-    }
-
-    const selectSexo = document.getElementById("sexo");
-    if (selectSexo) {
-      const sexos = [
-        { value: "M", label: "Masculino" },
-        { value: "F", label: "Femenino" }
-      ];
-      selectSexo.innerHTML = `<option value="" disabled selected>Selecciona el sexo</option>`;
-      sexos.forEach(({ value, label }) => {
-        const option = document.createElement("option");
-        option.value = value;
-        option.textContent = label;
-        selectSexo.appendChild(option);
-      });
-    }
-
-    const selectEstado = document.getElementById("estado");
-    if (selectEstado) {
-      const estados = [
-        { code: "AGU", name: "Aguascalientes" },
-        { code: "BCN", name: "Baja California" },
-        { code: "BCS", name: "Baja California Sur" },
-        { code: "CAM", name: "Campeche" },
-        { code: "CHP", name: "Chiapas" },
-        { code: "CHH", name: "Chihuahua" },
-        { code: "COA", name: "Coahuila" },
-        { code: "COL", name: "Colima" },
-        { code: "CDMX", name: "Ciudad de México" },
-        { code: "DUR", name: "Durango" },
-        { code: "GUA", name: "Guanajuato" },
-        { code: "GRO", name: "Guerrero" },
-        { code: "HID", name: "Hidalgo" },
-        { code: "JAL", name: "Jalisco" },
-        { code: "MEX", name: "Estado de México" },
-        { code: "MIC", name: "Michoacán" },
-        { code: "MOR", name: "Morelos" },
-        { code: "NAY", name: "Nayarit" },
-        { code: "NLE", name: "Nuevo León" },
-        { code: "OAX", name: "Oaxaca" },
-        { code: "PUE", name: "Puebla" },
-        { code: "QUE", name: "Querétaro" },
-        { code: "ROO", name: "Quintana Roo" },
-        { code: "SLP", name: "San Luis Potosí" },
-        { code: "SIN", name: "Sinaloa" },
-        { code: "SON", name: "Sonora" },
-        { code: "TAB", name: "Tabasco" },
-        { code: "TAM", name: "Tamaulipas" },
-        { code: "TLA", name: "Tlaxcala" },
-        { code: "VER", name: "Veracruz" },
-        { code: "YUC", name: "Yucatán" },
-        { code: "ZAC", name: "Zacatecas" }
-      ];
-      selectEstado.innerHTML = `<option value="" disabled selected>Selecciona un estado</option>`;
-      estados.forEach(({ code, name }) => {
-        const option = document.createElement("option");
-        option.value = code;
-        option.textContent = name;
-        selectEstado.appendChild(option);
-      });
-    }
-
-    // --------- Envío AJAX con anti-doble-submit ---------
-    const form = document.getElementById("registerForm");
-    const alertContainer = document.getElementById("alertContainer") || document.body;
-    let isSubmitting = false;
-
-    if (form) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (isSubmitting) return;
-        isSubmitting = true;
-
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const prevText = submitBtn ? submitBtn.textContent : null;
-        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Enviando..."; }
-
-        try {
-          const fd = new FormData(form);
-          fd.append("afiliado", "1");
-
-          const res = await fetch("../php/afiliados_crear.php", { method: "POST", body: fd });
-          const text = await res.text();
-          let data;
-          try { data = JSON.parse(text); }
-          catch { showAlert(alertContainer, "El servidor no devolvió JSON válido.", "error"); return; }
-
-          if (data.ok) {
-            showAlert(alertContainer, data.mensaje || "Registro exitoso", "success", 3000);
-            clearForm();
-          } else {
-            showAlert(alertContainer, data.mensaje || "No se pudo registrar", "error", 3000);
-            clearForm();
-          }
-        } catch (err) {
-          console.error("Error en fetch:", err);
-          showAlert(alertContainer, "Error en la red o en el servidor", "error", 3000);
-        } finally {
-          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = prevText || "Enviar"; }
-          setTimeout(() => { isSubmitting = false; }, 300);
-        }
-      });
-    }
   });
 }
