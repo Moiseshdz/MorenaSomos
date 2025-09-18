@@ -60,7 +60,7 @@ $registrado = htmlspecialchars($row['registrado_en'] ?? '', ENT_QUOTES, 'UTF-8')
     <br><br>
 
     <div class="bottom-nav">
-        <button onclick="window.location.href='dashboard.html'">
+        <button onclick="window.location.href='dashboard_app.php'">
             <i class="fas fa-home"></i>
             Inicio
         </button>

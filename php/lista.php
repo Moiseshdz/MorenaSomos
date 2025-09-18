@@ -83,7 +83,7 @@ if ($rolUsuario === 'coordinador') {
             $foto = renderFoto($lider['foto'] ?? null);
             $idLider = (int) $lider['id'];
 
-            echo "<a href='vista.html?id={$idLider}' style='text-decoration:none; color:inherit;'>";
+            echo "<a href='vista_detalle.php?id={$idLider}' style='text-decoration:none; color:inherit;'>";
             echo "<li class='card-item' style='background:#f1f8e9;'>";
             echo $foto;
             echo "<div style='margin-left:12px; flex:1; text-align:left;'>";
@@ -135,7 +135,7 @@ if ($rolUsuario === 'coordinador') {
                 $foto = renderFoto($row['foto'] ?? null);
                 $id = (int) $row['id'];
 
-                echo "<a href='vista.html?id={$id}' style='text-decoration:none; color:inherit;'>";
+                echo "<a href='vista_detalle.php?id={$id}' style='text-decoration:none; color:inherit;'>";
                 echo "<li class='card-item' style='background:#ffffff;'>";
                 echo $foto;
                 echo "<div style='margin-left:12px; text-align:left;'><h1 class='textlista'>{$nombre}</h1></div>";
@@ -168,7 +168,7 @@ if ($rolUsuario === 'coordinador') {
                     $foto = renderFoto($row['foto'] ?? null);
                     $id = (int) $row['id'];
 
-                    echo "<a href='vista.html?id={$id}' style='text-decoration:none; color:inherit;'>";
+                    echo "<a href='vista_detalle.php?id={$id}' style='text-decoration:none; color:inherit;'>";
                     echo "<li class='card-item' style='background:#fff9c4;'>";
                     echo $foto;
                     echo "<div style='margin-left:12px; text-align:left;'><h1 class='textlista'>{$nombre}</h1></div>";

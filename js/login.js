@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         successMessage.textContent = "¡Sesión activa!";
         successMessage.style.display = 'block';
         setTimeout(() => {
-            window.location.replace('html/dashboard.html');
+            window.location.replace('php/dashboard_app.php');
         }, 1000);
     }
 });
@@ -48,7 +48,7 @@ loginForm.addEventListener('submit', function(e) {
             successMessage.textContent = data.message || "¡Inicio de sesión exitoso!";
             successMessage.style.display = 'block';
             setTimeout(() => {
-                window.location.replace('html/dashboard.html');
+                window.location.replace('php/dashboard_app.php');
             }, 500);
         } else {
             successMessage.style.display = 'none';

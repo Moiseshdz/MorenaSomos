@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        window.location.href = "../html/dashboard.html";
+        window.location.href = "../php/dashboard_app.php";
       }
     });
   }
