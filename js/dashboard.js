@@ -33,7 +33,7 @@ function showAlert(container, message, type = "success", autoCloseMs = 3000) {
 document.addEventListener("DOMContentLoaded", () => {
   const curpCookie = getCookie("login_usuario");
   if (!curpCookie) {
-    window.location.href = "../index.html";
+    window.location.href = "../index.php";
   }
 });
 
@@ -127,11 +127,11 @@ async function cargarDatosUsuario() {
       if (container) container.style.display = "flex";
     } else {
       alert(data.message || "No hay sesión activa");
-      window.location.href = "../index.html";
+      window.location.href = "../index.php";
     }
   } catch (err) {
     console.error(err);
-    window.location.href = "../index.html";
+    window.location.href = "../index.php";
   }
 }
 
@@ -141,7 +141,7 @@ if (logoutBtn) {
     try {
       const res = await fetch("../php/logout.php", { credentials: "same-origin" });
       const data = await res.json();
-      if (data.success) window.location.href = "../index.html";
+      if (data.success) window.location.href = "../index.php";
     } catch (e) {
       console.error(e);
     }

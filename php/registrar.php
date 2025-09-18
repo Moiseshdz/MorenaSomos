@@ -1,3 +1,10 @@
+<?php
+session_start();
+if (isset($_SESSION['usuario_id']) || !empty($_COOKIE['login_usuario'])) {
+    header('Location: dashboard_app.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -64,7 +71,7 @@
 
 
     <div class="forgot-password">
-      <a href="../index.html">¿Ya tienes cuenta? Inicia sesión</a>
+      <a href="../index.php">¿Ya tienes cuenta? Inicia sesión</a>
     </div>
   </div>
 </body>

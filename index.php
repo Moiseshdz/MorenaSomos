@@ -1,3 +1,10 @@
+<?php
+session_start();
+if (isset($_SESSION['usuario_id']) || !empty($_COOKIE['login_usuario'])) {
+    header('Location: php/dashboard_app.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -39,13 +46,12 @@
 
         <!-- Botón de registro que redirige a otra página -->
         <div class="forgot-password">
-            <a href="html/registrar.html">¡Regístrate!</a>
+            <a href="php/registrar.php">¡Regístrate!</a>
         </div>
+    </div>
 
-
-
-        <!-- Script -->
-        <script src="js/login.js"></script>
+    <!-- Script -->
+    <script src="js/login.js"></script>
 </body>
 
 </html>

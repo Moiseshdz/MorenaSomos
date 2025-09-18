@@ -1,16 +1,22 @@
+<?php
+session_start();
+if (!isset($_SESSION['usuario_id']) && empty($_COOKIE['login_usuario'])) {
+    header('Location: ../index.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
      <link href="https://framework-gb.cdn.gob.mx/gm/v3/assets/styles/main.css" rel="stylesheet" />
     <link rel="stylesheet" href="../style/dashboard.css?v=3" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <title>Document</title>
+    <title>Detalle del afiliado</title>
 </head>
 <body>
      <div id="vista"></div>
      <script src="../js/vista.js"></script>
 </body>
 </html>
- 
