@@ -1,40 +1,40 @@
 # APLICACION WEB DE REGISTRO Y GESTION DE AFILIADOS
 
-Aplicación web desarrollada en **PHP, JavaScript y HTML** cuyo propósito es **registrar afiliados y administrar su información de manera eficiente, ordenada y segura**.  
-El sistema permite la captura, consulta, actualización y eliminación de datos, facilitando la organización y el control de la información en una base de datos centralizada.
+Aplicación web desarrollada en **PHP, JavaScript y HTML** para el **registro de afiliados** y la **organización eficiente de la información**.  
+El sistema permite administrar datos mediante formularios, vistas dinámicas y conexión a una base de datos, facilitando el control y mantenimiento de la información.
 
-Este proyecto está orientado a **fines académicos, administrativos y organizacionales**, aplicando principios básicos de desarrollo web, manejo de bases de datos y buenas prácticas de programación.
+Este proyecto está orientado a **fines académicos y administrativos**, aplicando buenas prácticas de desarrollo web y manejo de datos.
 
 ---
 
-## 📌 Descripción General
+## 📌 Descripcion General
 
 La aplicación funciona bajo una arquitectura **cliente-servidor**, donde:
-- El **frontend** presenta formularios y vistas para la interacción del usuario.
-- El **backend** procesa la lógica del sistema, valida la información y gestiona la base de datos.
-- La información se almacena de forma estructurada en **MySQL**, permitiendo su consulta y mantenimiento.
+- El usuario interactúa con formularios web.
+- PHP procesa la lógica del sistema.
+- JavaScript valida y mejora la experiencia del usuario.
+- Los datos se almacenan en una base de datos MySQL.
 
 ---
 
-## 🧱 Tecnologías Utilizadas
+## 🧱 Tecnologias Utilizadas
 
 ### Backend
 - **PHP**  
-  Manejo de lógica del sistema, validaciones del lado del servidor y conexión con la base de datos.
+  Manejo de lógica, procesamiento de formularios y conexión a la base de datos.
 
 ### Frontend
-- **HTML** – Estructura de la aplicación  
-- **CSS** – Estilos y diseño visual  
-- **JavaScript** – Validaciones, interactividad y mejora de la experiencia del usuario  
+- **HTML** – Estructura de las vistas  
+- **CSS** – Diseño y estilos  
+- **JavaScript** – Validaciones y comportamiento dinámico  
 
 ### Base de Datos
-- **MySQL / MariaDB**  
-  Almacenamiento y organización de la información de los afiliados.
+- **MySQL / MariaDB**
 
 ### Herramientas
-- **XAMPP** – Servidor local (Apache + MySQL)
-- **Git** – Control de versiones
-- **GitHub** – Repositorio remoto y colaboración
+- **XAMPP** (Apache + MySQL)
+- **Git** y **GitHub**
+- **Visual Studio Code**
 
 ---
 
@@ -42,27 +42,29 @@ La aplicación funciona bajo una arquitectura **cliente-servidor**, donde:
 
 ```text
 /
-├── assets/
-│   ├── css/              # Estilos del sistema
-│   ├── js/               # Validaciones y scripts
-│   └── img/              # Imágenes y recursos gráficos
+├── .vscode/              # Configuracion del editor
 │
-├── config/
-│   └── database.php      # Configuración de la base de datos
+├── bd/                   # Archivos relacionados con la base de datos
 │
-├── includes/
-│   ├── header.php        # Encabezado común
-│   └── footer.php        # Pie de página
+├── config/               # Configuracion del sistema
 │
-├── pages/
-│   ├── registro.php      # Formulario de registro de afiliados
-│   ├── listado.php       # Listado general de afiliados
-│   ├── editar.php        # Edición de registros
-│   └── eliminar.php      # Eliminación de afiliados
+├── img/                  # Imagenes del sistema
 │
-├── database/
-│   └── database.sql      # Script de creación de la base de datos
+├── js/                   # Scripts JavaScript
 │
-├── index.php             # Página principal
+├── src/                  # Archivos fuente y logica principal
+│
+├── style/                # Hojas de estilo CSS
+│
+├── uploads/              # Archivos subidos por el usuario
+│
+├── curp.php               # Validacion y manejo de CURP
+├── dashboard.php          # Panel principal del sistema
+├── guardar.php            # Registro de nuevos afiliados
+├── guardar_edicion.php    # Actualizacion de registros
+├── index.php              # Pagina principal
+├── logout.php             # Cierre de sesion
+├── vista.php              # Vista y consulta de afiliados
+│
 ├── README.md
 └── .gitignore
