@@ -463,3 +463,25 @@ input:checked+.slider:before {
     color: #fff;
     transform: scale(1.2); /* hace el zoom */
 }
+ .card-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #fff;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .textlista {
+        font-size: 18px;
+        margin: 0;
+        color: #333;
+    }
+
+    
